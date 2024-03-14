@@ -1,118 +1,154 @@
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Inter } from "next/font/google";
+
+import { Label } from "@/components/ui/label";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { IoCopyOutline } from "react-icons/io5";
+import { TbGasStation, TbGasStationOff } from "react-icons/tb";
+import {
+  useAccount,
+  useBalance,
+  useBlockNumber,
+  useEnsName,
+  useReadContract,
+  useSignMessage,
+  useWriteContract,
+} from "wagmi";
+import { mainnet } from "wagmi/chains";
+import FaucetABI from "../abi/FaucetABI.json";
+import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
+import { sendEther } from "./services/sendEther";
+import { Spinner } from "@/components/Spinner";
+import ChainTab from "@/components/tabs/ChainTab";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const [selectedAmount, setSelectedAmount] = React.useState("option-one");
+  const [isSendLoading, setIsSendLoading] = React.useState(false);
+  console.log(isSendLoading);
+
+  const { address } = useAccount();
+  const { signMessage } = useSignMessage();
+  const blockNumber = useBlockNumber();
+  const { data: drip, writeContract, status } = useWriteContract();
+  console.log(status);
+
+  const read = useReadContract({
+    abi: FaucetABI,
+    address: "0x0f07b81Da2CdaD0135cF9ae98D6C4E14eDd35383",
+    functionName: "getBalance",
+  });
+
+  console.log(read);
+  console.log(blockNumber);
+  const result = useEnsName({
+    address: address,
+    chainId: mainnet.id,
+  });
+  console.log(result);
+
+  const [captcha, setCaptcha] = React.useState<string | null>("");
+  console.log(captcha);
+  console.log(address);
+  const balance = useBalance({
+    address: address,
+  });
+  const formattedBalance = balance.data?.formatted;
+  console.log(formattedBalance);
+
+  const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+  const vault = "0x1DF58063bb451760F69B25AE656De91468432A0f";
+  const copyFunction = () => {
+    navigator.clipboard.writeText(vault);
+    toast("Address copied to clipboard", {
+      description: "Thanks!",
+    });
+  };
+
+  const sendEtherMutation = useMutation({
+    mutationFn: sendEther,
+    onSuccess: (data) => {
+      setIsSendLoading(false);
+      console.log(data, "data from mutation");
+      toast("Your ETH is on the way!", {
+        description: (
+          <p>
+            track txn :{" "}
+            <a href={`https://sepolia.etherscan.io/tx/${data?.hash}`}>
+              https://sepolia.etherscan.io/tx/{data.hash}
+            </a>{" "}
+          </p>
+        ),
+      });
+    },
+    onError: (error: any) => {
+      setIsSendLoading(false);
+      console.error("Error sending ETH got here", error);
+      toast("Error sending ETH", {
+        description: error.response.data.message.includes(
+          "insufficient funds for transfer"
+        )
+          ? "Sorry Faucet empty, come back later"
+          : "Something went wrong.",
+      });
+    },
+  });
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    setIsSendLoading(true);
+    sendEtherMutation.mutate({ address: address, amount: selectedAmount });
+  };
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <main className="h-screen flex justify-center items-center flex-col gap-8">
+      {" "}
+      <ConnectButton showBalance={false} />
+      <Tabs
+        defaultValue="sepolia"
+        className="flex flex-col justify-center items-center"
+      >
+        <TabsList className="grid w-[200px] grid-cols-2 rounded-3xl ">
+          <TabsTrigger value="sepolia">Sepolia</TabsTrigger>
+          <TabsTrigger value="goerli">Goerli</TabsTrigger>
+        </TabsList>
+        <ChainTab
+          chainName="Sepolia"
+          faucetABI={FaucetABI}
+          contractAddress="0x0f07b81Da2CdaD0135cF9ae98D6C4E14eDd35383"
+          functionName="drip"
         />
-      </div>
+      </Tabs>
+      <Card className="w-[600px]">
+        <CardHeader>
+          <CardTitle> Faucet Address</CardTitle>
+          <CardDescription>
+            Support our faucet. Donate to keep us running.
+          </CardDescription>
+          <div className="flex align-center items-center justify-between border border-dashed rounded-md">
+            <div>{vault}</div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+            <Button variant={"ghost"} onClick={copyFunction}>
+              <IoCopyOutline />
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
     </main>
   );
 }
