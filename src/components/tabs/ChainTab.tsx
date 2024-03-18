@@ -41,7 +41,7 @@ const ChainTab = ({
   });
   const { data: drip, writeContract, status } = useWriteContract();
 
-  const [selectedAmount, setSelectedAmount] = React.useState("option-one");
+  const [selectedAmount, setSelectedAmount] = React.useState("0.1");
   const [captcha, setCaptcha] = React.useState<string | null>("");
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
