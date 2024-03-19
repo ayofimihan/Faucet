@@ -2,7 +2,6 @@ import { Label } from "@radix-ui/react-label";
 
 import ReCAPTCHA from "react-google-recaptcha";
 import { TbGasStationOff, TbGasStation } from "react-icons/tb";
-import { writeContract } from "viem/actions";
 import { Spinner } from "../Spinner";
 import { Button } from "../ui/button";
 import {
@@ -20,7 +19,12 @@ import React from "react";
 import { useMutation } from "@tanstack/react-query";
 import { sendEther } from "@/pages/services/sendEther";
 import { toast } from "sonner";
-import { Address } from "viem";
+import {
+  Address,
+  ContractFunctionExecutionError,
+  Hash,
+  TransactionReceipt,
+} from "viem";
 
 type props = {
   chainName: string;
@@ -39,13 +43,24 @@ const ChainTab = ({
   const balance = useBalance({
     address: address,
   });
-  const { data: drip, writeContract, status } = useWriteContract();
+  const {
+    data: drip,
+    writeContract,
+    status: dripStatus,
+    error: dripError,
+  } = useWriteContract();
+  console.log(dripStatus, "status from write contract");
+  console.log(drip, "drip from write contract");
+  console.log(dripError, "error from write contract");
 
   const [selectedAmount, setSelectedAmount] = React.useState("0.1");
+  const [hash, setHash] = React.useState<Hash>();
+  const [receipt, setReceipt] = React.useState<TransactionReceipt>();
+
   const [captcha, setCaptcha] = React.useState<string | null>("");
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
-  const formattedBalance = balance.data?.formatted;
+  const formattedBalance = Number(balance.data?.formatted);
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
@@ -83,17 +98,21 @@ const ChainTab = ({
   };
 
   const handleDrip = () => {
-    setIsSendLoading(true);
-    const hash = writeContract({
-      abi: faucetABI,
-      address: contractAddress,
-      functionName: functionName,
-      args: [
-        selectedAmount === "0.1" ? "100000000000000000" : "200000000000000000",
-      ],
-    });
-    console.log("this is the hash", hash);
-    setIsSendLoading(false);
+    try {
+      const txhash = writeContract({
+        abi: faucetABI,
+        address: contractAddress,
+        functionName: functionName,
+        args: [
+          selectedAmount === "0.1"
+            ? "100000000000000000"
+            : "200000000000000000",
+        ],
+      });
+      setHash(txhash!);
+    } catch (error) {
+      console.error("Error submitting transaction:", error);
+    }
   };
 
   return (
@@ -104,7 +123,7 @@ const ChainTab = ({
             Testnet {chainName} ETH Faucet for Ethereum Developers
           </CardTitle>
           <CardDescription className="text-md">
-            Fast and reliable. 0.1 {chainName} ETH/day/address. blz don't drain
+            Fast and reliable. 0.2 {chainName} ETH/day/address. blz don't drain
             the faucet.
           </CardDescription>
         </CardHeader>
@@ -165,12 +184,12 @@ const ChainTab = ({
         />
         <CardFooter className="flex justify-between">
           <Button
-            onClick={formattedBalance !== "0" ? handleDrip : handleSubmit}
+            onClick={formattedBalance > 0 ? handleDrip : handleSubmit}
             disabled={captcha && address ? false : true}
           >
             {isSendLoading ? (
               <Spinner.spinner className=" h-4 w-4 animate-spin" />
-            ) : formattedBalance === "0" ? (
+            ) : formattedBalance === 0 ? (
               <TbGasStationOff size={30} className="p-1" />
             ) : (
               <TbGasStation size={30} className="p-1" />

@@ -23,10 +23,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   const { success } = await ratelimit.limit(address);
-  // if (!success) {
-  //   console.log("Too many requests");
-  // return res.status(429).json({ success: false, message: "Too many requests" });
-  // }
+  if (!success) {
+    console.log("Too many requests");
+    return res
+      .status(429)
+      .json({ success: false, message: "Too many requests" });
+  }
 
   try {
     const hash = await client.sendTransaction({

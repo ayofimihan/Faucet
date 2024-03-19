@@ -22,7 +22,6 @@ export default function Home() {
   console.log(isSendLoading);
 
   const { address } = useAccount();
-  const { signMessage } = useSignMessage();
 
   const result = useEnsName({
     address: address,
