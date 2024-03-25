@@ -2,17 +2,26 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createWalletClient, http, parseEther } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { sepolia } from "viem/chains";
+import { baseSepolia, sepolia } from "viem/chains";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { address, amount } = req.body;
+  const { address, amount, chain } = req.body;
   const PRIVATE_KEY = process.env.SEPOLIA_PRIVATE_KEY;
-  const client = createWalletClient({
-    chain: sepolia,
-    transport: http(),
-  });
+
+  let client;
+  if (chain === "Sepolia") {
+    client = createWalletClient({
+      chain: sepolia,
+      transport: http(),
+    });
+  } else if (chain === "Base Sepolia") {
+    client = createWalletClient({
+      chain: baseSepolia,
+      transport: http(),
+    });
+  }
 
   const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
 
@@ -31,7 +40,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const hash = await client.sendTransaction({
+    const hash = await client!.sendTransaction({
       account,
       to: address,
       value: parseEther(amount),

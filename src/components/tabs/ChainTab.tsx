@@ -23,6 +23,7 @@ import {
   Address,
   ContractFunctionExecutionError,
   Hash,
+  TransactionExecutionError,
   TransactionReceipt,
 } from "viem";
 
@@ -31,6 +32,8 @@ type props = {
   faucetABI: any;
   contractAddress: Address;
   functionName: string;
+  selectedAmount: string;
+  setSelectedAmount: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const ChainTab = ({
@@ -38,35 +41,62 @@ const ChainTab = ({
   faucetABI,
   contractAddress,
   functionName,
+  selectedAmount,
+  setSelectedAmount,
 }: props) => {
+  const errTxnRejected = "User rejected the request.";
+  const errRateLimit = "Too many requests";
+  const { chain } = useAccount();
+  const connectedChain = chain?.name;
+  console.log(connectedChain, "connectedChain from chainTab");
   const { address } = useAccount();
+  console.log(address);
   const balance = useBalance({
     address: address,
   });
+
   const {
     data: drip,
     writeContract,
     status: dripStatus,
     error: dripError,
-  } = useWriteContract();
-  console.log(dripStatus, "status from write contract");
-  console.log(drip, "drip from write contract");
+  } = useWriteContract({
+    mutation: {
+      onError: (error: any) => {
+        if (error instanceof TransactionExecutionError) {
+          if (error.shortMessage.includes(errTxnRejected)) {
+            console.log("User rejected the request");
+            toast("User rejected the request", {
+              description: "Please try again",
+            });
+          }
+          if (error.shortMessage.includes(errRateLimit)) {
+            console.log("You have already withdrawn today.");
+            toast("Too many requests", {
+              description: "Try again in 24 hours",
+            });
+          }
+        }
+        console.log(error, "error from useWriteContract");
+      },
+    },
+  });
   console.log(dripError, "error from write contract");
 
-  const [selectedAmount, setSelectedAmount] = React.useState("0.1");
+  console.log(selectedAmount, "selectedAmount from chainTab");
   const [hash, setHash] = React.useState<Hash>();
   const [receipt, setReceipt] = React.useState<TransactionReceipt>();
 
-  const [captcha, setCaptcha] = React.useState<string | null>("");
+  const [captcha, setCaptcha] = React.useState<string | null>("ff");
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
+  console.log(formattedBalance, "formattedBalance from chainTab");
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
     onSuccess: (data) => {
       setIsSendLoading(false);
-      console.log(data, "data from mutation");
       toast("Your ETH is on the way!", {
         description: (
           <p>
@@ -79,8 +109,8 @@ const ChainTab = ({
       });
     },
     onError: (error: any) => {
+      console.log(error, "error from sendEtherMutation");
       setIsSendLoading(false);
-      console.error("Error sending ETH got here", error);
       toast("Error sending ETH", {
         description: error.response.data.message.includes(
           "insufficient funds for transfer"
@@ -91,13 +121,19 @@ const ChainTab = ({
     },
   });
 
+  //this is the function that makes the api call to send ether without approving a transaction.
   const handleSubmit = (e: any) => {
     e.preventDefault();
     setIsSendLoading(true);
-    sendEtherMutation.mutate({ address: address, amount: selectedAmount });
+    sendEtherMutation.mutate({
+      address: address,
+      amount: selectedAmount,
+      chain: connectedChain,
+    });
   };
 
-  const handleDrip = () => {
+  //this is the function that makes the contract call.
+  const handleDrip = async () => {
     try {
       const txhash = writeContract({
         abi: faucetABI,
@@ -109,9 +145,9 @@ const ChainTab = ({
             : "200000000000000000",
         ],
       });
-      setHash(txhash!);
-    } catch (error) {
-      console.error("Error submitting transaction:", error);
+      console.log(txhash, "txhash from handleDrip");
+    } catch (error: unknown) {
+      console.log(error, "did it get here?");
     }
   };
 
@@ -120,7 +156,7 @@ const ChainTab = ({
       <Card className="flex justify-center items-center flex-col w-[600px]">
         <CardHeader className="flex items-center justify-center">
           <CardTitle className="text-2xl">
-            Testnet {chainName} ETH Faucet for Ethereum Developers
+            {chainName} ETH Faucet for Ethereum Developers
           </CardTitle>
           <CardDescription className="text-md">
             Fast and reliable. 0.2 {chainName} ETH/day/address. blz don't drain
@@ -177,14 +213,14 @@ const ChainTab = ({
             </div>
           </form>
         </CardContent>
-        <ReCAPTCHA
+        {/* <ReCAPTCHA
           sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
           className="flex justify-center mb-5"
           onChange={setCaptcha}
-        />
+        /> */}
         <CardFooter className="flex justify-between">
           <Button
-            onClick={formattedBalance > 0 ? handleDrip : handleSubmit}
+            onClick={formattedBalance > 0.001 ? handleDrip : handleSubmit}
             disabled={captcha && address ? false : true}
           >
             {isSendLoading ? (
