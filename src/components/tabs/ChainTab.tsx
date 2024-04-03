@@ -26,6 +26,7 @@ import {
   TransactionExecutionError,
   TransactionReceipt,
 } from "viem";
+import Image from "next/image";
 
 type props = {
   chainName: string;
@@ -48,9 +49,9 @@ const ChainTab = ({
   const errRateLimit = "Too many requests";
   const { chain } = useAccount();
   const connectedChain = chain?.name;
-  console.log(connectedChain, "connectedChain from chainTab");
+
   const { address } = useAccount();
-  console.log(address);
+
   const balance = useBalance({
     address: address,
   });
@@ -65,33 +66,51 @@ const ChainTab = ({
       onError: (error: any) => {
         if (error instanceof TransactionExecutionError) {
           if (error.shortMessage.includes(errTxnRejected)) {
-            console.log("User rejected the request");
             toast("User rejected the request", {
               description: "Please try again",
             });
           }
           if (error.shortMessage.includes(errRateLimit)) {
-            console.log("You have already withdrawn today.");
             toast("Too many requests", {
               description: "Try again in 24 hours",
             });
           }
         }
-        console.log(error, "error from useWriteContract");
+        if (error instanceof ContractFunctionExecutionError) {
+          if (error.shortMessage.includes("You can only withdraw once a day")) {
+            toast("You have already withdrawn today.", {
+              description: "Try again in 24 hours",
+            });
+          }
+        }
+        setIsSendLoading(false);
+      },
+      onSuccess: (hash: any) => {
+        if (hash) {
+          setIsSendLoading(false);
+          toast("Your eth is on the way!", {
+            description: (
+              <p>
+                track txn :{" "}
+                {chainName === "Sepolia" ? (
+                  <a href={`https://${chainName}.etherscan.io/tx/${hash}`}>
+                    https://sepolia.etherscan.io/tx/{hash}
+                  </a>
+                ) : (
+                  <a href={`https://sepolia.basescan.org/tx/${hash}`}></a>
+                )}
+              </p>
+            ),
+          });
+        }
       },
     },
   });
-  console.log(dripError, "error from write contract");
-
-  console.log(selectedAmount, "selectedAmount from chainTab");
-  const [hash, setHash] = React.useState<Hash>();
-  const [receipt, setReceipt] = React.useState<TransactionReceipt>();
 
   const [captcha, setCaptcha] = React.useState<string | null>("ff");
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
-  console.log(formattedBalance, "formattedBalance from chainTab");
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
@@ -109,15 +128,31 @@ const ChainTab = ({
       });
     },
     onError: (error: any) => {
-      console.log(error, "error from sendEtherMutation");
       setIsSendLoading(false);
-      toast("Error sending ETH", {
-        description: error.response.data.message.includes(
-          "insufficient funds for transfer"
-        )
-          ? "Sorry Faucet empty, come back later"
-          : "Something went wrong.",
-      });
+
+      // toast("Error sending ETH", {
+      //   description: error.response.data.message.includes(
+      //     "insufficient funds for transfer"
+      //   )
+      //     ? "Sorry Faucet empty, come back later"
+      //     : error.response.data.message.includes("Too many requests")
+      //     ? "Too many requests"
+      //     : "Unknown error occured, try again",
+      // });
+
+      error.response.data.message.includes("insufficient funds for transfer")
+        ? toast("Insuffiecient funds for transfer", {
+            description: "Sorry Faucet empty, come back later",
+          })
+        : error.response.data.message.includes("Too many requests")
+        ? toast("Too many requests", {
+            className: "bg-red-500 text-white",
+            closeButton: true,
+            description: "Try again in 24 hours",
+          })
+        : toast("Unknown error occured, try again", {
+            description: "Try again",
+          });
     },
   });
 
@@ -134,6 +169,7 @@ const ChainTab = ({
 
   //this is the function that makes the contract call.
   const handleDrip = async () => {
+    setIsSendLoading(true);
     try {
       const txhash = writeContract({
         abi: faucetABI,
@@ -145,22 +181,39 @@ const ChainTab = ({
             : "200000000000000000",
         ],
       });
-      console.log(txhash, "txhash from handleDrip");
-    } catch (error: unknown) {
-      console.log(error, "did it get here?");
-    }
+    } catch (error: unknown) {}
   };
 
   return (
     <TabsContent value={chainName.toLowerCase()}>
       <Card className="flex justify-center items-center flex-col w-[600px]">
         <CardHeader className="flex items-center justify-center">
-          <CardTitle className="text-2xl">
-            {chainName} ETH Faucet for Ethereum Developers
+          <CardTitle className="text-2xl font-bold flex align-center items-center ">
+            {/* {chainName !== "Sepolia" ? "ff" : "xx"} */}
+            <span>
+              {" "}
+              {chainName === "Sepolia" ? (
+                <Image
+                  src={"/eth-sepolia.png"}
+                  alt="Sepolia logo"
+                  width={20}
+                  height={20}
+                />
+              ) : (
+                <Image
+                  src={"/Base_Symbol_Blue.png"}
+                  alt="Base black logo"
+                  width={20}
+                  height={20}
+                />
+              )}
+            </span>
+            <>&nbsp;</>
+            {chainName === "baseSepolia" ? "Base Sepolia" : chainName} Faucet.
           </CardTitle>
           <CardDescription className="text-md">
-            Fast and reliable. 0.2 {chainName} ETH/day/address. blz don't drain
-            the faucet.
+            Dripping 0.05 {chainName === "Sepolia" ? chainName : "bsETH"} per
+            day
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -170,7 +223,7 @@ const ChainTab = ({
                 <Label htmlFor="name">Connected Address/ENS</Label>
                 <p className="text-red-500 text-sm">
                   {address ? (
-                    <p className="text-green-400">{address}</p>
+                    <span className="text-green-400">{address}</span>
                   ) : (
                     "Connect your wallet"
                   )}
@@ -180,7 +233,7 @@ const ChainTab = ({
                 <Label htmlFor="amount">Request Amount</Label>
 
                 <RadioGroup
-                  defaultValue="0.1"
+                  value={selectedAmount}
                   className="flex"
                   onValueChange={(value) => setSelectedAmount(value)}
                 >

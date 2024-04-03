@@ -27,17 +27,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const ratelimit = new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(1, "300 s"),
+    limiter: Ratelimit.slidingWindow(1, "86400 s"),
     analytics: true,
   });
 
   const { success } = await ratelimit.limit(address);
-  if (!success) {
-    console.log("Too many requests");
-    return res
-      .status(429)
-      .json({ success: false, message: "Too many requests" });
-  }
 
   try {
     const hash = await client!.sendTransaction({
@@ -46,11 +40,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       value: parseEther(amount),
     });
 
-    console.log("this is the hash", hash);
+    if (!success) {
+      return res
+        .status(429)
+        .json({ success: false, message: "Too many requests" });
+    }
 
     return res.status(200).json({ success: true, hash });
   } catch (error: any) {
-    console.log(error.details);
     return res.status(500).json({ success: false, message: error.details });
   }
 }

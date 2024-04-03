@@ -14,19 +14,16 @@ import { toast } from "sonner";
 import { useAccount } from "wagmi";
 import FaucetABI from "../abi/FaucetABI.json";
 import SepoliaABI from "../abi/SepoliaABI.json";
+import { CustomButton } from "@/components/ui/CustomConnectButton";
+import { useChainModal } from "@rainbow-me/rainbowkit";
+import { useSwitchChain } from "wagmi";
 
 export default function Home() {
   const [isSendLoading, setIsSendLoading] = React.useState(false);
   const [sepoliaSelectedAmount, setSepoliaSelectedAmount] =
     React.useState("0.1");
   const [baseSepoliaSelectedAmount, setBaseSepoliaSelectedAmount] =
-    React.useState("0.2");
-
-  console.log(sepoliaSelectedAmount, baseSepoliaSelectedAmount);
-
-  console.log(isSendLoading);
-
-  const { address, chain, chainId } = useAccount();
+    React.useState("0.1");
 
   const vault = "0x1DF58063bb451760F69B25AE656De91468432A0f";
   const copyFunction = () => {
@@ -36,26 +33,32 @@ export default function Home() {
     });
   };
 
+  const { openChainModal } = useChainModal();
+  const { chains, switchChain } = useSwitchChain();
+  console.log(chains);
+
   return (
     <main className="h-screen flex justify-center items-center flex-col gap-8">
       {" "}
-      <ConnectButton showBalance={false} label="Get Tokens" />
+      <CustomButton />
       <Tabs
-        defaultValue="sepolia"
+        defaultValue="basesepolia"
         className="flex flex-col justify-center items-center"
       >
         <TabsList className="grid w-[200px] grid-cols-2 rounded-3xl ">
-          <TabsTrigger value="sepolia">Sepolia</TabsTrigger>
-          <TabsTrigger value="basesepolia">Base Sepolia</TabsTrigger>
+          <TabsTrigger
+            value="basesepolia"
+            onClick={() => switchChain({ chainId: 84532 })}
+          >
+            Base Sepolia
+          </TabsTrigger>
+          <TabsTrigger
+            value="sepolia"
+            onClick={() => switchChain({ chainId: 11155111 })}
+          >
+            Sepolia
+          </TabsTrigger>
         </TabsList>
-        <ChainTab
-          chainName="Sepolia"
-          faucetABI={FaucetABI}
-          contractAddress="0x0f07b81Da2CdaD0135cF9ae98D6C4E14eDd35383"
-          functionName="drip"
-          selectedAmount={sepoliaSelectedAmount}
-          setSelectedAmount={setSepoliaSelectedAmount}
-        />
         <ChainTab
           chainName="baseSepolia"
           faucetABI={SepoliaABI}
@@ -63,6 +66,14 @@ export default function Home() {
           functionName="drip"
           selectedAmount={baseSepoliaSelectedAmount}
           setSelectedAmount={setBaseSepoliaSelectedAmount}
+        />
+        <ChainTab
+          chainName="Sepolia"
+          faucetABI={FaucetABI}
+          contractAddress="0x0f07b81Da2CdaD0135cF9ae98D6C4E14eDd35383"
+          functionName="drip"
+          selectedAmount={sepoliaSelectedAmount}
+          setSelectedAmount={setSepoliaSelectedAmount}
         />
       </Tabs>
       <Card className="w-[600px]">

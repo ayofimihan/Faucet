@@ -3,21 +3,20 @@ import {
   RainbowKitProvider,
   darkTheme,
   lightTheme,
-  midnightTheme,
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { AppProps } from "next/app";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { baseSepolia, goerli, mainnet, sepolia } from "wagmi/chains";
+import { baseSepolia, sepolia } from "wagmi/chains";
 import RootLayout from "@/components/Layout";
 
 export default function App({ Component, pageProps }: AppProps) {
   const config = createConfig({
-    chains: [sepolia, baseSepolia],
+    chains: [baseSepolia, sepolia],
     transports: {
-      [sepolia.id]: http(),
       [baseSepolia.id]: http(),
+      [sepolia.id]: http(),
     },
   });
 
@@ -33,7 +32,6 @@ export default function App({ Component, pageProps }: AppProps) {
             darkMode: darkTheme(),
           }}
         >
-          {/* Your App */}
           <RootLayout>
             <Component {...pageProps} />
           </RootLayout>
