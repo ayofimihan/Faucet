@@ -53,7 +53,7 @@ export const CustomButton = () => {
               return (
                 <div style={{ display: "flex", gap: 12 }}>
                   <button
-                    onClick={openChainModal}
+                    // onClick={openChainModal}
                     style={{ display: "flex", alignItems: "center" }}
                     type="button"
                   >

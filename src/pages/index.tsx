@@ -19,11 +19,10 @@ import { useChainModal } from "@rainbow-me/rainbowkit";
 import { useSwitchChain } from "wagmi";
 
 export default function Home() {
-  const [isSendLoading, setIsSendLoading] = React.useState(false);
   const [sepoliaSelectedAmount, setSepoliaSelectedAmount] =
-    React.useState("0.1");
+    React.useState("0.02");
   const [baseSepoliaSelectedAmount, setBaseSepoliaSelectedAmount] =
-    React.useState("0.1");
+    React.useState("0.02");
 
   const vault = "0x1DF58063bb451760F69B25AE656De91468432A0f";
   const copyFunction = () => {
@@ -62,7 +61,7 @@ export default function Home() {
         <ChainTab
           chainName="baseSepolia"
           faucetABI={SepoliaABI}
-          contractAddress="0x06fe622400969B08Fec977d9c9735921Eab63F79"
+          contractAddress="0x0fC2Ad3A50a75E917d4DB721D447A948333769BC"
           functionName="drip"
           selectedAmount={baseSepoliaSelectedAmount}
           setSelectedAmount={setBaseSepoliaSelectedAmount}
@@ -70,7 +69,7 @@ export default function Home() {
         <ChainTab
           chainName="Sepolia"
           faucetABI={FaucetABI}
-          contractAddress="0x0f07b81Da2CdaD0135cF9ae98D6C4E14eDd35383"
+          contractAddress="0xDD0725cb9b7b381d81EC025aeecCD27D2F37F22B"
           functionName="drip"
           selectedAmount={sepoliaSelectedAmount}
           setSelectedAmount={setSepoliaSelectedAmount}

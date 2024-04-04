@@ -64,6 +64,7 @@ const ChainTab = ({
   } = useWriteContract({
     mutation: {
       onError: (error: any) => {
+        console.log(error, "error chaintab mutation");
         if (error instanceof TransactionExecutionError) {
           if (error.shortMessage.includes(errTxnRejected)) {
             toast("User rejected the request", {
@@ -82,6 +83,11 @@ const ChainTab = ({
               description: "Try again in 24 hours",
             });
           }
+          if (error.shortMessage.includes("Not enough funds in the contract")) {
+            toast("Not enough funds in the contract", {
+              description: "Try again in a few hours",
+            });
+          }
         }
         setIsSendLoading(false);
       },
@@ -97,7 +103,10 @@ const ChainTab = ({
                     https://sepolia.etherscan.io/tx/{hash}
                   </a>
                 ) : (
-                  <a href={`https://sepolia.basescan.org/tx/${hash}`}></a>
+                  <a href={`https://sepolia.basescan.org/tx/${hash}`}>
+                    {" "}
+                    https://sepolia.basescan.org/tx/{hash}
+                  </a>
                 )}
               </p>
             ),
@@ -111,6 +120,7 @@ const ChainTab = ({
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
+  console.log(formattedBalance);
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
@@ -171,14 +181,12 @@ const ChainTab = ({
   const handleDrip = async () => {
     setIsSendLoading(true);
     try {
-      const txhash = writeContract({
+      writeContract({
         abi: faucetABI,
         address: contractAddress,
         functionName: functionName,
         args: [
-          selectedAmount === "0.1"
-            ? "100000000000000000"
-            : "200000000000000000",
+          selectedAmount === "0.02" ? "20000000000000000" : "50000000000000000",
         ],
       });
     } catch (error: unknown) {}
@@ -189,7 +197,6 @@ const ChainTab = ({
       <Card className="flex justify-center items-center flex-col w-[600px]">
         <CardHeader className="flex items-center justify-center">
           <CardTitle className="text-2xl font-bold flex align-center items-center ">
-            {/* {chainName !== "Sepolia" ? "ff" : "xx"} */}
             <span>
               {" "}
               {chainName === "Sepolia" ? (
@@ -239,26 +246,26 @@ const ChainTab = ({
                 >
                   <div
                     className={`flex items-center space-x-2 border p-3 rounded-lg ${
-                      selectedAmount === "0.1"
+                      selectedAmount === "0.02"
                         ? "border-rose-500 bg-rose-100"
                         : ""
                     }`}
                   >
-                    <RadioGroupItem value="0.1" id="one" className="hidden" />
+                    <RadioGroupItem value="0.02" id="one" className="hidden" />
                     <Label htmlFor="one" className="cursor-pointer">
-                      0.1 ETH
+                      0.02 ETH
                     </Label>
                   </div>
                   <div
                     className={`flex items-center space-x-2 border p-3 rounded-lg ${
-                      selectedAmount === "0.2"
+                      selectedAmount === "0.05"
                         ? "border-rose-500 bg-rose-100"
                         : ""
                     }`}
                   >
-                    <RadioGroupItem value="0.2" id="two" className="hidden" />
+                    <RadioGroupItem value="0.05" id="two" className="hidden" />
                     <Label htmlFor="two" className="cursor-pointer">
-                      0.2 ETH
+                      0.05 ETH
                     </Label>
                   </div>
                 </RadioGroup>
@@ -273,12 +280,12 @@ const ChainTab = ({
         /> */}
         <CardFooter className="flex justify-between">
           <Button
-            onClick={formattedBalance > 0.001 ? handleDrip : handleSubmit}
+            onClick={formattedBalance >= 0.01 ? handleDrip : handleSubmit}
             disabled={captcha && address ? false : true}
           >
             {isSendLoading ? (
               <Spinner.spinner className=" h-4 w-4 animate-spin" />
-            ) : formattedBalance === 0 ? (
+            ) : formattedBalance < 0.01 ? (
               <TbGasStationOff size={30} className="p-1" />
             ) : (
               <TbGasStation size={30} className="p-1" />

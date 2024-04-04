@@ -36,11 +36,6 @@
   },
   {
     "inputs": [],
-    "name": "Faucet__NotEnoughFunds",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "Faucet__NotOwner",
     "type": "error"
   },
