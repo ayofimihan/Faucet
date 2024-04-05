@@ -27,6 +27,7 @@ import {
   TransactionReceipt,
 } from "viem";
 import Image from "next/image";
+import { useEnsName } from "wagmi";
 
 type props = {
   chainName: string;
@@ -60,7 +61,6 @@ const ChainTab = ({
     data: drip,
     writeContract,
     status: dripStatus,
-    error: dripError,
   } = useWriteContract({
     mutation: {
       onError: (error: any) => {
@@ -86,6 +86,7 @@ const ChainTab = ({
           if (error.shortMessage.includes("Not enough funds in the contract")) {
             toast("Not enough funds in the contract", {
               description: "Try again in a few hours",
+              style: { backgroundColor: "#fca5a5" },
             });
           }
         }
@@ -116,7 +117,7 @@ const ChainTab = ({
     },
   });
 
-  const [captcha, setCaptcha] = React.useState<string | null>("ff");
+  const [captcha, setCaptcha] = React.useState<string | null>("");
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
@@ -140,23 +141,13 @@ const ChainTab = ({
     onError: (error: any) => {
       setIsSendLoading(false);
 
-      // toast("Error sending ETH", {
-      //   description: error.response.data.message.includes(
-      //     "insufficient funds for transfer"
-      //   )
-      //     ? "Sorry Faucet empty, come back later"
-      //     : error.response.data.message.includes("Too many requests")
-      //     ? "Too many requests"
-      //     : "Unknown error occured, try again",
-      // });
-
       error.response.data.message.includes("insufficient funds for transfer")
         ? toast("Insuffiecient funds for transfer", {
             description: "Sorry Faucet empty, come back later",
           })
         : error.response.data.message.includes("Too many requests")
         ? toast("Too many requests", {
-            className: "bg-red-500 text-white",
+            style: { backgroundColor: "red" },
             closeButton: true,
             description: "Try again in 24 hours",
           })
@@ -181,19 +172,34 @@ const ChainTab = ({
   const handleDrip = async () => {
     setIsSendLoading(true);
     try {
-      writeContract({
-        abi: faucetABI,
-        address: contractAddress,
-        functionName: functionName,
-        args: [
-          selectedAmount === "0.02" ? "20000000000000000" : "50000000000000000",
-        ],
-      });
+      console.log(chainName);
+      console.log(connectedChain);
+      if (chainName === connectedChain) {
+        writeContract({
+          abi: faucetABI,
+          address: contractAddress,
+          functionName: functionName,
+          args: [
+            selectedAmount === "0.02"
+              ? "20000000000000000"
+              : "50000000000000000",
+          ],
+        });
+      } else {
+        toast(`⚠️You are currently connected to ${connectedChain} network`, {
+          description: `Please connect to ${chainName} network to continue`,
+          style: { backgroundColor: "yellow" },
+        });
+        setIsSendLoading(false);
+      }
     } catch (error: unknown) {}
   };
 
+  const ens = useEnsName({ address: address });
+  console.log(ens);
+
   return (
-    <TabsContent value={chainName.toLowerCase()}>
+    <TabsContent value={chainName.split(" ").join("").toLowerCase()}>
       <Card className="flex justify-center items-center flex-col w-[600px]">
         <CardHeader className="flex items-center justify-center">
           <CardTitle className="text-2xl font-bold flex align-center items-center ">
@@ -273,11 +279,11 @@ const ChainTab = ({
             </div>
           </form>
         </CardContent>
-        {/* <ReCAPTCHA
+        <ReCAPTCHA
           sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
           className="flex justify-center mb-5"
           onChange={setCaptcha}
-        /> */}
+        />
         <CardFooter className="flex justify-between">
           <Button
             onClick={formattedBalance >= 0.01 ? handleDrip : handleSubmit}

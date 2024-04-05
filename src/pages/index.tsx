@@ -17,6 +17,7 @@ import SepoliaABI from "../abi/SepoliaABI.json";
 import { CustomButton } from "@/components/ui/CustomConnectButton";
 import { useChainModal } from "@rainbow-me/rainbowkit";
 import { useSwitchChain } from "wagmi";
+import Footer from "@/components/ui/Footer";
 
 export default function Home() {
   const [sepoliaSelectedAmount, setSepoliaSelectedAmount] =
@@ -32,7 +33,6 @@ export default function Home() {
     });
   };
 
-  const { openChainModal } = useChainModal();
   const { chains, switchChain } = useSwitchChain();
   console.log(chains);
 
@@ -59,10 +59,10 @@ export default function Home() {
           </TabsTrigger>
         </TabsList>
         <ChainTab
-          chainName="baseSepolia"
+          chainName="Base Sepolia"
           faucetABI={SepoliaABI}
-          contractAddress="0x0fC2Ad3A50a75E917d4DB721D447A948333769BC"
-          functionName="drip"
+          contractAddress="0x5684c785bC826005E8F0f97D3A1bf4F50dBc1b4A"
+          functionName="dripbase"
           selectedAmount={baseSepoliaSelectedAmount}
           setSelectedAmount={setBaseSepoliaSelectedAmount}
         />
@@ -75,7 +75,7 @@ export default function Home() {
           setSelectedAmount={setSepoliaSelectedAmount}
         />
       </Tabs>
-      <Card className="w-[600px]">
+      <Card className="w-[600px] mb-0">
         <CardHeader>
           <CardTitle> Faucet Address</CardTitle>
           <CardDescription>
@@ -90,6 +90,8 @@ export default function Home() {
           </div>
         </CardHeader>
       </Card>
+      
+      {/* <Footer/> */}
     </main>
   );
 }
