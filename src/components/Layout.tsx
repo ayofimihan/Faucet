@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "testnet tokens",
   ],
   applicationName: "Base Sepolia Faucet",
-  authors: [{ name: "Champion", url: "https://githib.com/ayofimihan" }],
+  authors: [{ name: "Champion", url: "https://github.com/ayofimihan" }],
   openGraph: {
     title: "Base Sepolia Faucet",
     description: "Get Sepolia and Base Sepolia tokens from the faucet",
@@ -48,10 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <main className={`${spaceGrotesk.className} bg-slate-100`}>
-        {children}
-      </main>
+    <div className="bg-[#DAFEE7]">
+      <main className={`${spaceGrotesk.className} `}>{children}</main>
       <Toaster />
     </div>
   );

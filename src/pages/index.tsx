@@ -5,13 +5,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import ChainTab from "@/components/tabs/ChainTab";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
 import { IoCopyOutline } from "react-icons/io5";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
 import FaucetABI from "../abi/FaucetABI.json";
 import SepoliaABI from "../abi/SepoliaABI.json";
 import { CustomButton } from "@/components/ui/CustomConnectButton";
@@ -37,14 +35,14 @@ export default function Home() {
   console.log(chains);
 
   return (
-    <main className="h-screen flex justify-center items-center flex-col gap-8">
+    <main className="sm:h-screen flex items-center flex-col gap-6 justify-center my-3 sm:my-0">
       {" "}
       <CustomButton />
       <Tabs
         defaultValue="basesepolia"
-        className="flex flex-col justify-center items-center"
+        className="flex flex-col justify-center items-center w-full"
       >
-        <TabsList className="grid w-[200px] grid-cols-2 rounded-3xl ">
+        <TabsList className="grid grid-cols-2 rounded-3xl ">
           <TabsTrigger
             value="basesepolia"
             onClick={() => switchChain({ chainId: 84532 })}
@@ -75,23 +73,20 @@ export default function Home() {
           setSelectedAmount={setSepoliaSelectedAmount}
         />
       </Tabs>
-      <Card className="w-[600px] mb-0">
-        <CardHeader>
-          <CardTitle> Faucet Address</CardTitle>
-          <CardDescription>
-            Support our faucet. Donate to keep us running.
-          </CardDescription>
-          <div className="flex align-center items-center justify-between border border-dashed rounded-md">
-            <div>{vault}</div>
-
-            <Button variant={"ghost"} onClick={copyFunction}>
-              <IoCopyOutline />
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
-      
-      {/* <Footer/> */}
+      <div className="border shadow-sq border-black p-1 sm:min-w-[424.1px]">
+        <h1 className="text-bold tracking-tight">Faucet Address</h1>
+        <p className="text-xs sm:text-sm mb-1">
+          Support our faucet. Donate to keep us running.
+        </p>
+        <div className="flex align-center items-center justify-between border border-dashed rounded-md">
+          <div className="text-xs">{vault}</div>
+          <Button variant={"ghost"} onClick={copyFunction}>
+            <IoCopyOutline />
+          </Button>
+        </div>
+      </div>
+      <Footer/>
+    
     </main>
   );
 }
