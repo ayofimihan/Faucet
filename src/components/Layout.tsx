@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "https://sepolia-faucet.vercel.app/og-image.png",
+        url: "https://res.cloudinary.com/godfimihan/image/upload/v1712948328/Base_Sepola_elloin.jpg",
         width: 1200,
         height: 630,
         alt: "Base Sepolia Faucet",
@@ -39,6 +39,13 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     site: "https://sepolia-faucet.vercel.app",
+    images: [
+      {
+        url: "https://res.cloudinary.com/godfimihan/image/upload/v1712948328/Base_Sepola_elloin.jpg",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 };
 
