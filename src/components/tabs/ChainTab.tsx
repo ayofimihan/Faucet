@@ -277,7 +277,6 @@ const ChainTab = ({
           )}
         </Button>
       </div>
-      
     </TabsContent>
   );
 };
