@@ -61,7 +61,7 @@ const ChainTab = ({
         if (error instanceof TransactionExecutionError) {
           if (error.shortMessage.includes(errTxnRejected)) {
             toast.warning("User rejected the request", {
-              description: "Please try again",
+              description: "Please confirm in wallet",
             });
           }
           if (error.shortMessage.includes(errRateLimit)) {
