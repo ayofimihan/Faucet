@@ -25,14 +25,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
 
-   const ratelimit = new Ratelimit({
+  const ratelimit = new Ratelimit({
     redis: Redis.fromEnv(),
     limiter: Ratelimit.slidingWindow(1, "86400 s"),
     analytics: true,
   });
 
   const { success } = await ratelimit.limit(address);
-  console.log(success);
 
   if (!success) {
     return res
@@ -54,4 +53,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default handler;
-

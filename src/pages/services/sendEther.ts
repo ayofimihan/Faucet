@@ -9,7 +9,6 @@ interface SendEther {
 
 export const sendEther = async (data: SendEther) => {
   try {
-    console.log(data, "data in the service");
     const response = await axios.post("/api/sendEth", data);
     return response.data;
   } catch (error) {

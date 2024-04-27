@@ -18,8 +18,6 @@ import { useAccount, useBalance, useEnsName, useWriteContract } from "wagmi";
 import { Spinner } from "../Spinner";
 import { Button } from "../ui/button";
 import { TabsContent } from "../ui/tabs";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 
 type props = {
   chainName: string;
@@ -40,9 +38,11 @@ const ChainTab = ({
 }: props) => {
   const errTxnRejected = "User rejected the request.";
   const errRateLimit = "Too many requests";
+  const errOneDayLimit = "You can only withdraw once a day";
+  const errContractEmpty = "Not enough funds in the contract";
+  const errInsufficientFunds = "insufficient funds for transfer";
   const { chain } = useAccount();
   const connectedChain = chain?.name;
-  console.log(connectedChain);
 
   const { address } = useAccount();
 
@@ -57,7 +57,6 @@ const ChainTab = ({
   } = useWriteContract({
     mutation: {
       onError: (error: any) => {
-        console.log(error, "error chaintab mutation");
         if (error instanceof TransactionExecutionError) {
           if (error.shortMessage.includes(errTxnRejected)) {
             toast.warning("User rejected the request", {
@@ -71,12 +70,12 @@ const ChainTab = ({
           }
         }
         if (error instanceof ContractFunctionExecutionError) {
-          if (error.shortMessage.includes("You can only withdraw once a day")) {
+          if (error.shortMessage.includes(errOneDayLimit)) {
             toast.error("You have already withdrawn today.", {
               description: "Wait 24 hours between requests",
             });
           }
-          if (error.shortMessage.includes("Not enough funds in the contract")) {
+          if (error.shortMessage.includes(errContractEmpty)) {
             toast.error("Not enough funds in the faucet", {
               description: "Try again in a few hours",
             });
@@ -119,9 +118,6 @@ const ChainTab = ({
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
-  console.log(formattedBalance);
-
-
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
@@ -141,11 +137,11 @@ const ChainTab = ({
     onError: (error: any) => {
       setIsSendLoading(false);
 
-      error.response.data.message.includes("insufficient funds for transfer")
+      error.response.data.message.includes(errInsufficientFunds)
         ? toast.error("Insuffiecient funds for transfer", {
             description: "Sorry Faucet empty, come back later",
           })
-        : error.response.data.message.includes("Too many requests")
+        : error.response.data.message.includes(errRateLimit)
         ? toast.error("Too many requests", {
             closeButton: true,
             description: "Try again in 24 hours",
@@ -167,14 +163,10 @@ const ChainTab = ({
     });
   };
 
-
-
-  //this is the function that makes the contract call if you have enough balance to pay gas fees.
+  //this is the function that makes the contract call if you have enough balance to pay gas fees??
   const handleDrip = async () => {
     setIsSendLoading(true);
     try {
-      console.log(chainName);
-      console.log(connectedChain);
       if (chainName === connectedChain) {
         writeContract({
           abi: faucetABI,
@@ -198,9 +190,6 @@ const ChainTab = ({
       }
     } catch (error: unknown) {}
   };
-
-  const ens = useEnsName({ address: address });
-  console.log(ens);
 
   return (
     <TabsContent value={chainName.split(" ").join("").toLowerCase()}>
@@ -270,7 +259,7 @@ const ChainTab = ({
           </RadioGroup>
         </div>
         <ReCAPTCHA
-          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+          sitekey={"6LdB244pAAAAAOyHN7PejeS3NjR151UNVciqA4Uz"}
           className="flex justify-center sm:mb-2 p-5"
           onChange={setCaptcha}
         />
@@ -288,105 +277,7 @@ const ChainTab = ({
           )}
         </Button>
       </div>
-      {/* <Card className="flex justify-center items-center flex-col md:w-[600px] w-[370px] ">
-        <CardHeader className="flex items-center justify-center">
-          <CardTitle className="text-2xl font-bold flex align-center items-center ">
-            <span>
-              {" "}
-              {chainName === "Sepolia" ? (
-                <Image
-                  src={"/eth-sepolia.png"}
-                  alt="Sepolia logo"
-                  width={20}
-                  height={20}
-                />
-              ) : (
-                <Image
-                  src={"/Base_Symbol_Blue.png"}
-                  alt="Base black logo"
-                  width={20}
-                  height={20}
-                />
-              )}
-            </span>
-            <>&nbsp;</>
-            {chainName === "baseSepolia" ? "Base Sepolia" : chainName} Faucet.
-          </CardTitle>
-          <CardDescription className="text-md">
-            Dripping 0.05 {chainName === "Sepolia" ? chainName : "bsETH"} per
-            day
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col justify-center items-center space-y-1.5">
-                <Label htmlFor="name">Connected Address/ENS</Label>
-                <p className="text-red-500 text-sm">
-                  {address ? (
-                    <span className="text-green-400">{address}</span>
-                  ) : (
-                    "Connect your wallet"
-                  )}
-                </p>
-              </div>
-              <div className="flex flex-col justify-center items-center space-y-1.5">
-                <Label htmlFor="amount">Request Amount</Label>
-
-                <RadioGroup
-                  value={selectedAmount}
-                  className="flex"
-                  onValueChange={(value) => setSelectedAmount(value)}
-                >
-                  <div
-                    className={`flex items-center space-x-2 border p-3 rounded-lg ${
-                      selectedAmount === "0.02"
-                        ? "border-rose-500 bg-rose-100"
-                        : ""
-                    }`}
-                  >
-                    <RadioGroupItem value="0.02" id="one" className="hidden" />
-                    <Label htmlFor="one" className="cursor-pointer">
-                      0.02 ETH
-                    </Label>
-                  </div>
-                  <div
-                    className={`flex items-center space-x-2 border p-3 rounded-lg ${
-                      selectedAmount === "0.05"
-                        ? "border-rose-500 bg-rose-100"
-                        : ""
-                    }`}
-                  >
-                    <RadioGroupItem value="0.05" id="two" className="hidden" />
-                    <Label htmlFor="two" className="cursor-pointer">
-                      0.05 ETH
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-        <ReCAPTCHA
-          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-          className="flex justify-center mb-5"
-          onChange={setCaptcha}
-        />
-        <CardFooter className="flex">
-          <Button
-            onClick={formattedBalance >= 0.01 ? handleDrip : handleSubmit}
-            disabled={captcha && address ? false : true}
-          >
-            {isSendLoading ? (
-              <Spinner.spinner className=" h-4 w-4 animate-spin" />
-            ) : formattedBalance < 0.01 ? (
-              <TbGasStationOff size={30} className="p-1" />
-            ) : (
-              <TbGasStation size={30} className="p-1" />
-            )}
-          </Button>
-        </CardFooter>
-      </Card> */}
+      
     </TabsContent>
   );
 };

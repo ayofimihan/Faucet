@@ -10,38 +10,10 @@ import type { AppProps } from "next/app";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { baseSepolia, sepolia, mainnet } from "wagmi/chains";
 import RootLayout from "@/components/Layout";
-import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import {
-  rainbowWallet,
-  metaMaskWallet,
-  coinbaseWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { config } from "@/lib/config";
 
 export default function App({ Component, pageProps }: AppProps) {
-  const connectors = connectorsForWallets(
-    [
-      {
-        groupName: "Popular",
-        wallets: [metaMaskWallet, rainbowWallet, coinbaseWallet],
-      },
-    ],
-    {
-      appName: "Base Sepolia Faucet",
-      projectId: "c7483d888e40df6aa24382feda8b20ae",
-      appUrl: "https://localhost:3000",
-      appIcon: "https://localhost:3000/favicon.ico",
-      appDescription: "A faucet for Sepolia and Base Sepolia tokens",
-    }
-  );
-  const config = createConfig({
-    connectors,
-    chains: [baseSepolia, sepolia],
-    transports: {
-      [baseSepolia.id]: http(),
-      [sepolia.id]: http(),
-    },
-  });
-
   const queryClient = new QueryClient();
   return (
     <WagmiProvider config={config}>

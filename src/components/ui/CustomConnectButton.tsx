@@ -56,6 +56,7 @@ export const CustomButton = () => {
                     // onClick={openChainModal}
                     style={{ display: "flex", alignItems: "center" }}
                     type="button"
+                    className="hover:underline"
                   >
                     {chain.hasIcon && (
                       <div
@@ -79,7 +80,11 @@ export const CustomButton = () => {
                     )}
                     {chain.name}
                   </button>
-                  <button onClick={openAccountModal} type="button">
+                  <button
+                    onClick={openAccountModal}
+                    type="button"
+                    className="hover:transform hover:underline"
+                  >
                     {account.displayName}
                     {account.displayBalance
                       ? ` (${account.displayBalance})`

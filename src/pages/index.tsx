@@ -1,10 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import ChainTab from "@/components/tabs/ChainTab";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
@@ -13,9 +8,14 @@ import { toast } from "sonner";
 import FaucetABI from "../abi/FaucetABI.json";
 import SepoliaABI from "../abi/SepoliaABI.json";
 import { CustomButton } from "@/components/ui/CustomConnectButton";
-import { useChainModal } from "@rainbow-me/rainbowkit";
 import { useSwitchChain } from "wagmi";
 import Footer from "@/components/ui/Footer";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function Home() {
   const [sepoliaSelectedAmount, setSepoliaSelectedAmount] =
@@ -32,7 +32,6 @@ export default function Home() {
   };
 
   const { chains, switchChain } = useSwitchChain();
-  console.log(chains);
 
   return (
     <main className="sm:h-screen flex items-center flex-col gap-6 justify-center my-3 sm:my-0">
@@ -85,8 +84,7 @@ export default function Home() {
           </Button>
         </div>
       </div>
-      <Footer/>
-    
+      <Footer />
     </main>
   );
 }
