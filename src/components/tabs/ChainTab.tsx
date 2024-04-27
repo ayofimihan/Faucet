@@ -49,6 +49,7 @@ const ChainTab = ({
   const balance = useBalance({
     address: address,
   });
+  console.log(balance);
 
   const {
     data: drip,
