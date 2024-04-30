@@ -13,4 +13,5 @@ export const config = getDefaultConfig({
     [sepolia.id]: http(),
     [baseSepolia.id]: http(),
   },
+  ssr: true
 });

@@ -10,12 +10,7 @@ import SepoliaABI from "../abi/SepoliaABI.json";
 import { CustomButton } from "@/components/ui/CustomConnectButton";
 import { useSwitchChain } from "wagmi";
 import Footer from "@/components/ui/Footer";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function Home() {
   const [sepoliaSelectedAmount, setSepoliaSelectedAmount] =

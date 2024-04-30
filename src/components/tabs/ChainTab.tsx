@@ -1,7 +1,5 @@
 import { Label } from "@radix-ui/react-label";
-
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { sendEther } from "@/pages/services/sendEther";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import React from "react";
@@ -18,6 +16,9 @@ import { useAccount, useBalance, useEnsName, useWriteContract } from "wagmi";
 import { Spinner } from "../Spinner";
 import { Button } from "../ui/button";
 import { TabsContent } from "../ui/tabs";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+import { sendEther } from "../../../services/sendEther";
 
 type props = {
   chainName: string;
@@ -38,18 +39,15 @@ const ChainTab = ({
 }: props) => {
   const errTxnRejected = "User rejected the request.";
   const errRateLimit = "Too many requests";
-  const errOneDayLimit = "You can only withdraw once a day";
-  const errContractEmpty = "Not enough funds in the contract";
-  const errInsufficientFunds = "insufficient funds for transfer";
   const { chain } = useAccount();
   const connectedChain = chain?.name;
+  console.log(connectedChain);
 
   const { address } = useAccount();
 
   const balance = useBalance({
     address: address,
   });
-  console.log(balance);
 
   const {
     data: drip,
@@ -58,10 +56,11 @@ const ChainTab = ({
   } = useWriteContract({
     mutation: {
       onError: (error: any) => {
+        console.log(error, "error chaintab mutation");
         if (error instanceof TransactionExecutionError) {
           if (error.shortMessage.includes(errTxnRejected)) {
             toast.warning("User rejected the request", {
-              description: "Please confirm in wallet",
+              description: "Please try again",
             });
           }
           if (error.shortMessage.includes(errRateLimit)) {
@@ -71,12 +70,12 @@ const ChainTab = ({
           }
         }
         if (error instanceof ContractFunctionExecutionError) {
-          if (error.shortMessage.includes(errOneDayLimit)) {
+          if (error.shortMessage.includes("You can only withdraw once a day")) {
             toast.error("You have already withdrawn today.", {
               description: "Wait 24 hours between requests",
             });
           }
-          if (error.shortMessage.includes(errContractEmpty)) {
+          if (error.shortMessage.includes("Not enough funds in the contract")) {
             toast.error("Not enough funds in the faucet", {
               description: "Try again in a few hours",
             });
@@ -119,6 +118,7 @@ const ChainTab = ({
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
+  console.log(formattedBalance);
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
@@ -128,9 +128,22 @@ const ChainTab = ({
         description: (
           <p>
             track txn :{" "}
-            <a href={`https://${chainName}.etherscan.io/tx/${data?.hash}`}>
-              https://sepolia.etherscan.io/tx/{data.hash}
-            </a>{" "}
+            {chainName === "Sepolia" ? (
+              <a
+                href={`https://${chainName}.etherscan.io/tx/${data.hash}`}
+                target="_blank"
+              >
+                https://sepolia.etherscan.io/tx/{data.hash}
+              </a>
+            ) : (
+              <a
+                href={`https://sepolia.basescan.org/tx/${data.hash}`}
+                target="_blank"
+              >
+                {" "}
+                https://sepolia.basescan.org/tx/{data.hash}
+              </a>
+            )}
           </p>
         ),
       });
@@ -138,11 +151,11 @@ const ChainTab = ({
     onError: (error: any) => {
       setIsSendLoading(false);
 
-      error.response.data.message.includes(errInsufficientFunds)
+      error.response.data.message.includes("insufficient funds for transfer")
         ? toast.error("Insuffiecient funds for transfer", {
             description: "Sorry Faucet empty, come back later",
           })
-        : error.response.data.message.includes(errRateLimit)
+        : error.response.data.message.includes("Too many requests")
         ? toast.error("Too many requests", {
             closeButton: true,
             description: "Try again in 24 hours",
@@ -164,10 +177,12 @@ const ChainTab = ({
     });
   };
 
-  //this is the function that makes the contract call if you have enough balance to pay gas fees??
+  //this is the function that makes the contract call if you have enough balance to pay gas fees.
   const handleDrip = async () => {
     setIsSendLoading(true);
     try {
+      console.log(chainName);
+      console.log(connectedChain);
       if (chainName === connectedChain) {
         writeContract({
           abi: faucetABI,
@@ -191,6 +206,9 @@ const ChainTab = ({
       }
     } catch (error: unknown) {}
   };
+
+  const ens = useEnsName({ address: address });
+  console.log(ens);
 
   return (
     <TabsContent value={chainName.split(" ").join("").toLowerCase()}>

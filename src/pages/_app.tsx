@@ -7,10 +7,9 @@ import {
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { AppProps } from "next/app";
-import { createConfig, http, WagmiProvider } from "wagmi";
-import { baseSepolia, sepolia, mainnet } from "wagmi/chains";
+import { WagmiProvider } from "wagmi";
+
 import RootLayout from "@/components/Layout";
-import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { config } from "@/lib/config";
 
 export default function App({ Component, pageProps }: AppProps) {

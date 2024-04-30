@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Address } from "viem";
 
-interface SendEther {
+export interface SendEther {
   address: Address;
   amount: string;
   chain: string;
