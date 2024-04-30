@@ -68,7 +68,7 @@ export default function Home() {
         />
       </Tabs>
       <div className="border shadow-sq border-black p-1 sm:min-w-[424.1px]">
-        <h1 className="text-bold tracking-tight">Faucet Address</h1>
+        <h1 className="text-bold tracking-tight ">Faucet Address</h1>
         <p className="text-xs sm:text-sm mb-1">
           Support our faucet. Donate to keep us running.
         </p>

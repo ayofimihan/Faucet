@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Base Sepolia Faucet",
     description: "Get Sepolia and Base Sepolia tokens from the faucet",
-    url: "https://sepolia-faucet.vercel.app",
+    url: "https://base-sepolia-faucet.vercel.app",
     type: "website",
     images: [
       {
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "https://sepolia-faucet.vercel.app",
+    site: "https://base-sepolia-faucet.vercel.app",
     images: [
       {
         url: "https://res.cloudinary.com/godfimihan/image/upload/v1712948328/Base_Sepola_elloin.jpg",
