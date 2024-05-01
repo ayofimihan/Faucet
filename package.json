@@ -23,6 +23,7 @@
     "@types/react-google-recaptcha": "^2.1.9",
     "@upstash/ratelimit": "^1.0.1",
     "@upstash/redis": "^1.28.4",
+    "@vercel/analytics": "^1.2.2",
     "axios": "^1.6.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
