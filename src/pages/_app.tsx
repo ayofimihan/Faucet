@@ -10,8 +10,8 @@ import type { AppProps } from "next/app";
 import { WagmiProvider } from "wagmi";
 
 import { config } from "@/lib/config";
-import RootLayout from "@/components/layout";
 import Head from "next/head";
+import RootLayout from "@/components/Layout";
 
 export default function App({ Component, pageProps }: AppProps) {
   const queryClient = new QueryClient();
