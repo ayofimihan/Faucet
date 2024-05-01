@@ -41,7 +41,6 @@ const ChainTab = ({
   const errRateLimit = "Too many requests";
   const { chain } = useAccount();
   const connectedChain = chain?.name;
-  console.log(connectedChain);
 
   const { address } = useAccount();
 
@@ -56,7 +55,6 @@ const ChainTab = ({
   } = useWriteContract({
     mutation: {
       onError: (error: any) => {
-        console.log(error, "error chaintab mutation");
         if (error instanceof TransactionExecutionError) {
           if (error.shortMessage.includes(errTxnRejected)) {
             toast.warning("User rejected the request", {
@@ -118,7 +116,6 @@ const ChainTab = ({
   const [isSendLoading, setIsSendLoading] = React.useState(false);
 
   const formattedBalance = Number(balance.data?.formatted);
-  console.log(formattedBalance);
 
   const sendEtherMutation = useMutation({
     mutationFn: sendEther,
@@ -181,8 +178,6 @@ const ChainTab = ({
   const handleDrip = async () => {
     setIsSendLoading(true);
     try {
-      console.log(chainName);
-      console.log(connectedChain);
       if (chainName === connectedChain) {
         writeContract({
           abi: faucetABI,
@@ -208,7 +203,6 @@ const ChainTab = ({
   };
 
   const ens = useEnsName({ address: address });
-  console.log(ens);
 
   return (
     <TabsContent value={chainName.split(" ").join("").toLowerCase()}>

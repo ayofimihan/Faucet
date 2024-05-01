@@ -12,7 +12,6 @@ export const sendEther = async (data: SendEther) => {
     const response = await axios.post("/api/sendEth", data);
     return response.data;
   } catch (error) {
-    console.error("this is the error from services", error);
     throw error;
   }
 };
