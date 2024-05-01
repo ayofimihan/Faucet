@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Champion", url: "https://github.com/ayofimihan" }],
   openGraph: {
     title: "Base Sepolia Faucet",
-    description: "Get Sepolia and Base Sepolia tokens from the faucet",
+    description: "Get Base Sepolia and Sepolia tokens from the faucet",
     url: "https://base-sepolia-faucet.vercel.app",
     type: "website",
     images: [
@@ -31,14 +31,16 @@ export const metadata: Metadata = {
         url: "https://res.cloudinary.com/godfimihan/image/upload/v1712948328/Base_Sepola_elloin.jpg",
         width: 1200,
         height: 630,
-        alt: "Base Sepolia Faucet",
       },
     ],
     siteName: "Base Sepolia Faucet",
   },
   twitter: {
     card: "summary_large_image",
+    creator: "@f1m1han",
     site: "https://base-sepolia-faucet.vercel.app",
+    title: "Base Sepolia Faucet",
+    description: "Get Base Sepolia and Sepolia tokens from the faucet",
     images: [
       {
         url: "https://res.cloudinary.com/godfimihan/image/upload/v1712948328/Base_Sepola_elloin.jpg",
