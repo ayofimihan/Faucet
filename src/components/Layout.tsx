@@ -58,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#DAFEE7]">
+    <div>
       <main className={`${spaceGrotesk.className} `}>{children}</main>
       <Toaster />
       <Analytics />

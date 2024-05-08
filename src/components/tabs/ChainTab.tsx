@@ -16,8 +16,6 @@ import { useAccount, useBalance, useEnsName, useWriteContract } from "wagmi";
 import { Spinner } from "../Spinner";
 import { Button } from "../ui/button";
 import { TabsContent } from "../ui/tabs";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { sendEther } from "../../../services/sendEther";
 
 type props = {
